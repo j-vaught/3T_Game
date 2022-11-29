@@ -7,6 +7,16 @@ void sync(){
   while(REG_DISPLAY_VCOUNT < 160);
 }
 
+int s1=0;
+int s2=0;
+int s3=0;
+int s4=0;
+int s5=0;
+int s6=0;
+int s7=0;
+int s8=0;
+int s9=0;
+
 void drawRect(struct Rect r, uint16 color){
   for(int i = 0; i < r.h; i++){
     for(int j = 0; j < r.w; j++){
@@ -25,139 +35,158 @@ void drawCircle(struct Circle r, uint16 color){
   }
 }
 
-void init7seg(int x, int y, int th, int len){
-  a.w = f.h = len;
-  a.h = f.w = th;
-
-  d = g = a;
-  b = c = e = f;
+void initHash(int y, int x, int height, int width, int thickness){
+  int temp=(height-thickness*2)/3;
+  int temp2=(width-thickness*2)/3;
+  x1.h = x2.h = thickness;
+  x1.w = x2.w = width;
+  y1.h = y2.h = height;
+  y1.w = y2.w = thickness;
   
-  a.x = d.x = e.x = f.x = g.x = x;
-  b.x = c.x = a.x + a.w;
+  y1.y = y2.y = y;
+  y1.x = x+temp2;
+  y2.x = x+width-temp2-thickness;
+
+  x1.x = x2.x = x;
+  x1.y = y+temp;
+  x2.y = y+height-temp-thickness;
+}
+
+void drawHash(int y, int x, int height, int width, int thickness, uint16 color){
+  drawRect(x1, color);
+  drawRect(x2, color);
+  drawRect(y1, color);
+  drawRect(y2, color);
+}
+
+void initCircles(int y, int x, int width, int height, int thickness){
+  p1.r = p2.r = p3.r = p4.r = p5.r = p6.r = p7.r = p8.r = p9.r = (height-thickness*2)/6;
+  p1.x = p4.x = p7.x = x;
+  p1.y = p2.y = p3.y = y;
+  p2.x = p5.x = p8.x = x+(width-thickness*2)/3+thickness;
+  p3.x = p6.x = p9.x = x+(width-thickness*2)*2/3+2*thickness+1;
+  p4.y = p5.y = p6.y = y+(height-thickness*2)/3+thickness;
+  p7.y = p8.y = p9.y = y+(height-thickness*2)*2/3+2*thickness+1;
+
+}
+
+void drawCircles(int y, int x, int width, int height, int thickness, uint16 color){
+  drawCircle(p1, color);
+  drawCircle(p2, color);
+  drawCircle(p3, color);
+  drawCircle(p4, color);
+  drawCircle(p5, color);
+  drawCircle(p6, color);
+  drawCircle(p7, color);
+  drawCircle(p8, color);
+  drawCircle(p9, color);
+}
+
+void initDrawBoard(int y, int x, int width, int height, int thickness, uint16 color){
+  winner.x=0;
+  winner.y=0;
+  winner.h=SCREEN_HEIGHT;
+  winner.w=SCREEN_WIDTH;
+  drawRect(winner, color);
+  drawHash(y, x, height, width, thickness, 0XFFFF);
+  drawCircles(y, x, width, height, thickness, 0X0000);
+}
+
+int checkWinner(){
+  if (s1==s2==s3&&s1!=0){
+    return s1;
+  }
+  if(s4==s5==s6&&s4!=0){
+    return s4;
+  }
+  if(s7==s8==s9&&s7!=0){
+    return s7;
+  }
+  if(s1==s4==s7&&s1!=0){
+    return s7;
+  }
+  if(s2==s5==s8&&s2!=0){
+    return s2;
+  }
+  if(s3==s6==s9&&s3!=0){
+    return s3;
+  }
+  if(s1==s5==s9&&s1!=0){
+    return s1;
+  }
+  if(s3==s5==s7&&s3!=0){
+    return s3;
+  }
+  return 0;
+
+}
+
+int checkSpace(int location){
+  if(location==1&&s1==0){return 1;}
+  if(location==2&&s2==0){return 1;}
+  if(location==3&&s3==0){return 1;}
+  if(location==4&&s4==0){return 1;}
+  if(location==5&&s5==0){return 1;}
+  if(location==6&&s6==0){return 1;}
+  if(location==7&&s7==0){return 1;}
+  if(location==8&&s8==0){return 1;}
+  if(location==9&&s9==0){return 1;}
+  return 0;
+}
+
+//returns location of move command. IE, if 1 moves left, it returns 2
+//0=up, 1=down, 2=left, 3=right
+int move(int direction, int location){
+  if(direction==0){
+    //go up
+    if(location<=3){return location;}
+    if(location>3){
+      if(checkSpace(location-3)==1){return location-3;}
+      return location;
+      }
+  }
+  if(direction==1){
+    //go down
+    if(location>=7){return location;}
+    if(location<7){
+      if(checkSpace(location+3)==1){return location+3;}
+      return location;
+      }
+  }
+  if(direction==2){
+    //go left
+    if(location==1||location==4||location==7){return location;}
+    else{
+      if(checkSpace(location-1)==1){return location-1;}
+      return location;
+      }
+  }
+  if(direction==3){
+    //go right
+    if(location==3||location==6||location==9){return location;}
+    else{
+      if(checkSpace(location+1)==1){return location+1;}
+      return location;
+      }
+
+  }
+}
+
+int checkUserInput(){
   
-  a.y = b.y = f.y = y;
-  c.y = e.y = g.y = b.y + b.h - a.h;
-  d.y = g.y + b.h - a.h;
-}
-
-void clear7seg(){
-  drawRect(a, 0x0000);
-  drawRect(b, 0x0000);
-  drawRect(c, 0x0000);
-  drawRect(d, 0x0000);
-  drawRect(e, 0x0000);
-  drawRect(f, 0x0000);
-  drawRect(g, 0x0000);
-}
-
-void draw7Seg10(uint8 num){
-  clear7seg();
-  uint8 w,x,y,z;
-  w = num & 8;
-  x = num & 4;
-  y = num & 2;
-  z = num & 1;
-  //draw seven segment display
-  if((y || w || (x && z) || (!x && !z)))
-    drawRect(a, 0xFFFF);
-  if(w || (!y && !z) || (y && z) || !x)
-    drawRect(b, 0xFFFF);
-  if(!y || x || w || z)
-    drawRect(c, 0xFFFF);
-  if(w || (y && !z) || (!x && y) || (!x && !z) || (x && z && !y))
-    drawRect(d, 0xFFFF);
-  if((!x && !z) || (y && !z) || (w && !z))
-    drawRect(e, 0xFFFF);
-  if((!y && !z) || (x && !y) || (x && !z) || w)
-    drawRect(f, 0xFFFF);
-  if((!x && y) || (x && !y) || (y && !z) || w)
-    drawRect(g, 0xFFFF);
-}
-
-void draw7Seg(int num){
-    uint8 ones = num % 10;
-    uint8 tens = num / 10;
-    init7seg(SCREEN_WIDTH/2-24, 0, 4, 16);
-    draw7Seg10(tens);
-    init7seg(SCREEN_WIDTH/2, 0, 4, 16);
-    draw7Seg10(ones);
 }
 
 int main(){
   REG_DISPLAY = VIDEOMODE | BGMODE;
   
-  init7seg(SCREEN_WIDTH/2, 0, 4, 16);
-  
-  int counter = 0;
-  uint8 down = 0;
-  
-  ball.r = 20;
-  
-  ball.x = 120 - ball.r;
-  ball.y = 80 - ball.r;
-  
-  player.w = 8;
-  player.h = 32;
-  
-  player.x = 0;
-  player.y = 0;
-  
-  int ballSpeedX = 1;
-  int ballSpeedY = 1;
-  
-  int playerSpeedY = 2;
-  
-  uint16 ballColor = 0x1111;
-  uint16 playerColor = 0x2222;
-  
+  initHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
+  initCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
+
   while(1){
-
-    draw7Seg(counter);
-    drawCircle(prevBall, 0x0000);
-    drawRect(prevPlayer, 0x0000);
-    
-    if(!(REG_DISPLAY_INPUT & A) && !down)
-    {
-      counter++;
-      if(counter > 99)
-        counter = 0;
-      down = 1;
-    }
-    else if((REG_DISPLAY_INPUT & A))
-    {
-      down = 0;
-    }
-    
-    //draw7Seg(counter);
-    drawCircle(ball, ballColor);
-    drawRect(player, playerColor);
-    
-    prevBall = ball;
-    prevPlayer = player;
-    
-    //do all movement here after drawing
-    ball.x += ballSpeedX;
-    ball.y += ballSpeedY;
-    
-    if(!(REG_DISPLAY_INPUT & DOWN))
-      player.y += playerSpeedY;
-    if(!(REG_DISPLAY_INPUT & UP))
-      player.y -= playerSpeedY;
-
-    if(player.y < 0)
-      player.y = 0;
-    else if(player.y >= SCREEN_HEIGHT - player.h)
-      player.y = SCREEN_HEIGHT - player.h;
-    
-    if(ball.y + ball.r*2 >= 160 || ball.y <= 0)
-    {
-      ballSpeedY = -ballSpeedY;
-    }
-
-    if(ball.x + ball.r*2 >= 240 || ball.x <= 0)
-    {
-      ballSpeedX = -ballSpeedX;
-    }
     sync();
+    drawHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
+    drawCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
   }
+  
+  
 }
