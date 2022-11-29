@@ -46,9 +46,8 @@ typedef unsigned int            uint32;
 
 struct Rect {
   int x, y, w, h;
-} a, b, c, d, e, f, g,
-   player, prevPlayer;
+} x1, x2, y1, y2, winner;
 
 struct Circle {
   int x, y, r;
-} ball, prevBall;
+} p1, p2, p3, p4, p5, p6, p7, p8, p9;
