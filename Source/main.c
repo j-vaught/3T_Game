@@ -7,15 +7,7 @@ void sync(){
   while(REG_DISPLAY_VCOUNT < 160);
 }
 
-int s1=0;
-int s2=0;
-int s3=0;
-int s4=0;
-int s5=0;
-int s6=0;
-int s7=0;
-int s8=0;
-int s9=0;
+int s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0, s8=0, s9=0;
 
 void drawRect(struct Rect r, uint16 color){
   for(int i = 0; i < r.h; i++){
@@ -134,6 +126,19 @@ int checkSpace(int location){
   return 0;
 }
 
+int findEmptySpace(){
+  if(s1==0){return 1;}
+  if(s2==0){return 2;}
+  if(s3==0){return 3;}
+  if(s4==0){return 4;}
+  if(s5==0){return 5;}
+  if(s6==0){return 6;}
+  if(s7==0){return 7;}
+  if(s8==0){return 8;}
+  if(s9==0){return 9;}
+  return 0;
+}
+
 //returns location of move command. IE, if 1 moves left, it returns 2
 //0=up, 1=down, 2=left, 3=right
 int move(int direction, int location){
@@ -173,20 +178,91 @@ int move(int direction, int location){
 }
 
 int checkUserInput(){
-  
+  if(!(REG_DISPLAY_INPUT & DOWN))
+      return 1;
+  if(!(REG_DISPLAY_INPUT & UP))
+      return 0;
+  if(!(REG_DISPLAY_INPUT & LEFT))
+      return 2;
+  if(!(REG_DISPLAY_INPUT & RIGHT))
+      return 3;
+  if(!(REG_DISPLAY_INPUT & SELECT))
+      return 4;
+  return -1;
 }
 
+int checkTie(){
+  if(findEmptySpace()==0){
+    return 1;
+  }
+  return 0;
+}
+
+void drawCircleInt(int location, uint16 color){
+  if(location==1){drawCircle(p1, color);}
+  if(location==2){drawCircle(p2, color);}
+  if(location==3){drawCircle(p3, color);}
+  if(location==4){drawCircle(p4, color);}
+  if(location==5){drawCircle(p5, color);}
+  if(location==6){drawCircle(p6, color);}
+  if(location==7){drawCircle(p7, color);}
+  if(location==8){drawCircle(p8, color);}
+  if(location==9){drawCircle(p9, color);}
+}
+int currentLocation=0, playerMoving=0;
 int main(){
   REG_DISPLAY = VIDEOMODE | BGMODE;
-  
+  //initialize board.
+  //draw board
+  //draw hash
+  //draw circles
+  //if player not currently moving
+      //check for empty spot
+      //move player to this spot
+  //check for user input
+  //if move requested, draw circle on it
+  //if select was pressed, check if legal move
+  //if legal move, draw circle on it, switch to other player, check for winner/tie
+  //if neither, repeat
   initHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
   initCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
 
+drawHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
+    drawCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
   while(1){
     sync();
-    drawHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
-    drawCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
-  }
+    if(playerMoving==0){
+      playerMoving=1;
+    }
+    if(playerMoving==1){
+      if(currentLocation==0){
+        currentLocation=findEmptySpace();
+      }
+      int temp= checkUserInput();
+      if(0<temp<4){
+        currentLocation=move(temp,currentLocation);
+      }
+      if(temp==4){
+        if(checkSpace(currentLocation)==1){
+          if(playerMoving==1){
+            drawCircleInt(currentLocation,0xFFFF);
+            s1=currentLocation;
+            playerMoving=2;
+          }
+          else{
+            drawCircleInt(currentLocation,0xF00F);
+            s2=currentLocation;
+            playerMoving=1;
+          }
+          currentLocation=0;
+        }
+      }
+      drawCircleInt(currentLocation, 0x0FF0);
+      playerMoving=1;
+    }
+    currentLocation=findEmptySpace();
+        drawCircleInt(currentLocation, 0x0000);
+      }
+    }
   
   
-}
