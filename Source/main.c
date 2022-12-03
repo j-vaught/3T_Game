@@ -7,7 +7,20 @@ void sync(){
   while(REG_DISPLAY_VCOUNT < 160);
 }
 
-int s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0, s8=0, s9=0;
+int s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0, s8=0, s9=0;//Board positions
+uint16 colorGenerator(int r, int g, int b){
+  uint16 color = 0;
+  color = (r<<11) | (g<<5) | b;
+  return color;
+}
+
+int currentLocation=0, playerMoving=0;
+uint16 player1Color=0XFF00;
+uint16 player2Color=0XAAFF;
+uint16 player1ColorSelect=0XFF10;
+uint16 player2ColorSelect=0XABFF;
+uint16 BLACK=0X0000;
+uint16 WHITE=0XFFFF;
 
 void drawRect(struct Rect r, uint16 color){
   for(int i = 0; i < r.h; i++){
@@ -44,7 +57,7 @@ void initHash(int y, int x, int height, int width, int thickness){
   x2.y = y+height-temp-thickness;
 }
 
-void drawHash(int y, int x, int height, int width, int thickness, uint16 color){
+void drawHash(uint16 color){
   drawRect(x1, color);
   drawRect(x2, color);
   drawRect(y1, color);
@@ -62,7 +75,7 @@ void initCircles(int y, int x, int width, int height, int thickness){
 
 }
 
-void drawCircles(int y, int x, int width, int height, int thickness, uint16 color){
+void drawCircles(uint16 color){
   drawCircle(p1, color);
   drawCircle(p2, color);
   drawCircle(p3, color);
@@ -74,14 +87,26 @@ void drawCircles(int y, int x, int width, int height, int thickness, uint16 colo
   drawCircle(p9, color);
 }
 
+void drawCircleInt(int location, uint16 color){
+  if(location==1){drawCircle(p1, color);}
+  if(location==2){drawCircle(p2, color);}
+  if(location==3){drawCircle(p3, color);}
+  if(location==4){drawCircle(p4, color);}
+  if(location==5){drawCircle(p5, color);}
+  if(location==6){drawCircle(p6, color);}
+  if(location==7){drawCircle(p7, color);}
+  if(location==8){drawCircle(p8, color);}
+  if(location==9){drawCircle(p9, color);}
+}
+
 void initDrawBoard(int y, int x, int width, int height, int thickness, uint16 color){
   winner.x=0;
   winner.y=0;
   winner.h=SCREEN_HEIGHT;
   winner.w=SCREEN_WIDTH;
   drawRect(winner, color);
-  drawHash(y, x, height, width, thickness, 0XFFFF);
-  drawCircles(y, x, width, height, thickness, 0X0000);
+  drawHash(WHITE);
+  drawCircles(BLACK);
 }
 
 int checkWinner(){
@@ -124,6 +149,36 @@ int checkSpace(int location){
   if(location==8&&s8==0){return 1;}
   if(location==9&&s9==0){return 1;}
   return 0;
+}
+
+void updateBGBoard(int location, int player){
+    if(location==1){s1=player;}
+    if(location==2){s2=player;}
+    if(location==3){s3=player;}
+    if(location==4){s4=player;}
+    if(location==5){s5=player;}
+    if(location==6){s6=player;}
+    if(location==7){s7=player;}
+    if(location==8){s8=player;}
+    if(location==9){s9=player;}
+}
+
+void playerTempMove(int location, int player){
+  if(player==1){
+    drawCircleInt(location, player1ColorSelect);
+  }
+  if(player==2){
+    drawCircleInt(location, player2ColorSelect);
+  }
+}
+
+void playerMove(int player, int location){//does not check if spot is available(needs to be done in main function)
+  if(player==1){
+    drawCircleInt(location, player1Color);
+  }else if(player==2){
+    drawCircleInt(location, player2Color);
+  }
+  updateBGBoard(location,player);
 }
 
 int findEmptySpace(){
@@ -175,13 +230,14 @@ int move(int direction, int location){
       }
 
   }
+  return location;
 }
 
 int checkUserInput(){
+  if(!(REG_DISPLAY_INPUT & UP))
+    return 0;
   if(!(REG_DISPLAY_INPUT & DOWN))
       return 1;
-  if(!(REG_DISPLAY_INPUT & UP))
-      return 0;
   if(!(REG_DISPLAY_INPUT & LEFT))
       return 2;
   if(!(REG_DISPLAY_INPUT & RIGHT))
@@ -198,18 +254,7 @@ int checkTie(){
   return 0;
 }
 
-void drawCircleInt(int location, uint16 color){
-  if(location==1){drawCircle(p1, color);}
-  if(location==2){drawCircle(p2, color);}
-  if(location==3){drawCircle(p3, color);}
-  if(location==4){drawCircle(p4, color);}
-  if(location==5){drawCircle(p5, color);}
-  if(location==6){drawCircle(p6, color);}
-  if(location==7){drawCircle(p7, color);}
-  if(location==8){drawCircle(p8, color);}
-  if(location==9){drawCircle(p9, color);}
-}
-int currentLocation=0, playerMoving=0;
+
 int main(){
   REG_DISPLAY = VIDEOMODE | BGMODE;
   //initialize board.
@@ -227,42 +272,35 @@ int main(){
   initHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
   initCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
 
-drawHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
-    drawCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3,0xFFFF);
+  drawHash(WHITE);
+  drawCircles(BLACK);
+
   while(1){
     sync();
     if(playerMoving==0){
       playerMoving=1;
     }
-    if(playerMoving==1){
-      if(currentLocation==0){
+      if(currentLocation==0){//if no current location, find empty space and move to it
         currentLocation=findEmptySpace();
       }
-      int temp= checkUserInput();
-      if(0<temp<4){
+      int temp= checkUserInput();//check for user input
+      
+      if(-1<temp&&temp<4){
+        drawCircleInt(currentLocation, BLACK);
         currentLocation=move(temp,currentLocation);
-      }
-      if(temp==4){
-        if(checkSpace(currentLocation)==1){
-          if(playerMoving==1){
-            drawCircleInt(currentLocation,0xFFFF);
-            s1=currentLocation;
-            playerMoving=2;
-          }
-          else{
-            drawCircleInt(currentLocation,0xF00F);
-            s2=currentLocation;
-            playerMoving=1;
-          }
+        playerTempMove(currentLocation, player1Color);
+      }//if user input is a move command, move player
+      
+      if(temp==4){//if player presses select, do appropiate action
+        if(checkSpace(currentLocation)==1){//if space is not empty, do nothing
+          playerMove(currentLocation, playerMoving);//moves player on the BG board
           currentLocation=0;
+          if (playerMoving==1){playerMoving=2;}//switches player
+          else{playerMoving=1;}
         }
       }
-      drawCircleInt(currentLocation, 0x0FF0);
-      playerMoving=1;
     }
-    currentLocation=findEmptySpace();
-        drawCircleInt(currentLocation, 0x0000);
-      }
-    }
-  
-  
+
+  }
+    //}
+
