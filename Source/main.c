@@ -8,7 +8,7 @@ void sync(){
 int s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0, s8=0, s9=0;//Board positions
 int currentLocation=0, playerMoving=0, gameWon=0;//general info to keep game running
 
-uint16 colorGenerator(int r, int g, int b){//creates GBA color from RGB 256 values
+uint16 colorGenerator(int r, int g, int b){//creates GBA color from RGB 256 values(works, but unused in game)
   uint16 color = 0;
   int r1=r/8;
   int g1=g/8;
@@ -31,7 +31,6 @@ uint16 BROWN=0X0C63;
 uint16 ORANGE=0X01FF;
 uint16 PINK=0X7C1F;
 uint16 PURPLE=0X780F;
-uint16 TIE=0X7BEF;
 uint16 player1Color=0X001F;//red
 uint16 player2Color=0X44C0;//blue
 uint16 player1ColorSelect=0X3dff;//light red
