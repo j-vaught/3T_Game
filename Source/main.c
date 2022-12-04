@@ -17,7 +17,6 @@ uint16 colorGenerator(int r, int g, int b){//creates GBA color from RGB 256 valu
   return color;
 }
 
-
 uint16 BLACK=0X0000;
 uint16 WHITE=0XFFFF;
 uint16 RED=0X001F;
@@ -44,18 +43,8 @@ void drawRect(struct Rect r, uint16 color){
   }
 }
 
-void drawCircle(struct Circle r, uint16 color){
-  for(int x = 0; x < 2*r.r; x++){
-    for(int y = 0; y < 2*r.r; y++){
-        if((x-r.r)*(x-r.r) + (y-r.r)*(y-r.r) <= r.r*r.r){
-            SCREENBUFFER[SCREEN_WIDTH * (y + r.y) + (x + r.x)] = color;
-        }
-    }
-  }
-}
-
 void initHash(int y, int x, int height, int width, int thickness){
-  
+  //Jacob Vaught
   int temp=(height-thickness*2)/3;
   int temp2=(width-thickness*2)/3;
   x1.h = x2.h = thickness;
@@ -75,14 +64,17 @@ void initHash(int y, int x, int height, int width, int thickness){
 }
 
 void drawHash(uint16 color){
+  //draws hash marks
+  //Jacob Vaught
   drawRect(x1, color);
   drawRect(x2, color);
   drawRect(y1, color);
   drawRect(y2, color);
 }
 
-void initCircles(int y, int x, int width, int height, int thickness){
-  p1.r = p2.r = p3.r = p4.r = p5.r = p6.r = p7.r = p8.r = p9.r = (height-thickness*2)/6;
+void initPositions(int y, int x, int width, int height, int thickness){
+  p1.h = p2.h = p3.h= p4.h = p5.h = p6.h = p7.h = p8.h = p9.h = (height-thickness*2)/3;
+  p1.w = p2.w = p3.w= p4.w = p5.w = p6.w = p7.w = p8.w = p9.w = (width-thickness*2)/3;
   p1.x = p4.x = p7.x = x;
   p1.y = p2.y = p3.y = y;
   p2.x = p5.x = p8.x = x+(width-thickness*2)/3+thickness;
@@ -92,28 +84,28 @@ void initCircles(int y, int x, int width, int height, int thickness){
 
 }
 
-void drawCircles(uint16 color){
-  drawCircle(p1, color);
-  drawCircle(p2, color);
-  drawCircle(p3, color);
-  drawCircle(p4, color);
-  drawCircle(p5, color);
-  drawCircle(p6, color);
-  drawCircle(p7, color);
-  drawCircle(p8, color);
-  drawCircle(p9, color);
+void drawPositions(uint16 color){
+  drawRect(p1, color);
+  drawRect(p2, color);
+  drawRect(p3, color);
+  drawRect(p4, color);
+  drawRect(p5, color);
+  drawRect(p6, color);
+  drawRect(p7, color);
+  drawRect(p8, color);
+  drawRect(p9, color);
 }
 
-void drawCircleInt(int location, uint16 color){
-  if(location==1){drawCircle(p1, color);}
-  if(location==2){drawCircle(p2, color);}
-  if(location==3){drawCircle(p3, color);}
-  if(location==4){drawCircle(p4, color);}
-  if(location==5){drawCircle(p5, color);}
-  if(location==6){drawCircle(p6, color);}
-  if(location==7){drawCircle(p7, color);}
-  if(location==8){drawCircle(p8, color);}
-  if(location==9){drawCircle(p9, color);}
+void drawPositionInt(int location, uint16 color){
+  if(location==1){drawRect(p1, color);}
+  if(location==2){drawRect(p2, color);}
+  if(location==3){drawRect(p3, color);}
+  if(location==4){drawRect(p4, color);}
+  if(location==5){drawRect(p5, color);}
+  if(location==6){drawRect(p6, color);}
+  if(location==7){drawRect(p7, color);}
+  if(location==8){drawRect(p8, color);}
+  if(location==9){drawRect(p9, color);}
 }
 
 void initDrawBoard(){
@@ -123,7 +115,7 @@ void initDrawBoard(){
   winner.w=SCREEN_WIDTH;
   drawRect(winner, BLACK);
   drawHash(WHITE);
-  drawCircles(BLACK);
+  drawPositions(BLACK);
 }
 
 int checkWinner(){//returns winning player or 0 if no winner
@@ -165,25 +157,27 @@ void updateBGBoard(int location, int player){
 
 void playerTempMove(int location, int player){
   if(player==1){
-    drawCircleInt(location, player1ColorSelect);
+    drawPositionInt(location, player1ColorSelect);
   }
   if(player==2){
-    drawCircleInt(location, player2ColorSelect);
+    drawPositionInt(location, player2ColorSelect);
   }
 }
 
 void playerMove(int location, int player){//does not check if spot is available(needs to be done in main function)
   if(player==1){
-    drawCircleInt(location, player1Color);
+    drawPositionInt(location, player1Color);
   }else if(player==2){
-    drawCircleInt(location, player2Color);
+    drawPositionInt(location, player2Color);
   }else if(player==0){
-    drawCircleInt(location, BLACK);
+    drawPositionInt(location, BLACK);
   }
   updateBGBoard(location,player);
 }
 
 int findEmptySpace(){
+  //returns 1-9 if empty space is found
+  //Jacob Vaught
   if(s1==0){return 1;}
   if(s2==0){return 2;}
   if(s3==0){return 3;}
@@ -199,7 +193,7 @@ int findEmptySpace(){
 void drawBoard(){
   drawRect(winner, BLACK);
   drawHash(WHITE);
-  drawCircles(BLACK);
+  drawPositions(BLACK);
   playerMove(1,s1);
   playerMove(2,s2);
   playerMove(3,s3);
@@ -285,7 +279,7 @@ int main(){
   REG_DISPLAY = VIDEOMODE | BGMODE;
   //initiate board
   initHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
-  initCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
+  initPositions(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
   initDrawBoard();
 
   while(1){
