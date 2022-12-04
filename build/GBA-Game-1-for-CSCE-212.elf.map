@@ -440,13 +440,13 @@ Linker script and memory map
  *(.debug_info)
  .debug_info    0x0000000000000000     0x2b89 main.o
 
-.debug_abbrev   0x0000000000000000      0x3bd
+.debug_abbrev   0x0000000000000000      0x3ea
  *(.debug_abbrev)
- .debug_abbrev  0x0000000000000000      0x3bd main.o
+ .debug_abbrev  0x0000000000000000      0x3ea main.o
 
-.debug_line     0x0000000000000000     0x2092
+.debug_line     0x0000000000000000     0x209c
  *(.debug_line)
- .debug_line    0x0000000000000000     0x2092 main.o
+ .debug_line    0x0000000000000000     0x209c main.o
 
 .debug_frame    0x0000000000000000      0x250
  *(.debug_frame)
