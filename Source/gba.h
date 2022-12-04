@@ -46,7 +46,7 @@ typedef unsigned int            uint32;
 
 struct Rect {
   int x, y, w, h;
-} x1, x2, y1, y2, winner;
+} x1, x2, y1, y2, winner, pixel;
 
 struct Circle {
   int x, y, r;

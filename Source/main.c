@@ -1,5 +1,3 @@
-//main.c
-
 #include "gba.h"
 
 void sync(){
@@ -8,19 +6,36 @@ void sync(){
 }
 
 int s1=0, s2=0, s3=0, s4=0, s5=0, s6=0, s7=0, s8=0, s9=0;//Board positions
-uint16 colorGenerator(int r, int g, int b){
+int currentLocation=0, playerMoving=0, gameWon=0;//general info to keep game running
+
+uint16 colorGenerator(int r, int g, int b){//creates GBA color from RGB 256 values
   uint16 color = 0;
-  color = (r<<11) | (g<<5) | b;
+  int r1=r/8;
+  int g1=g/8;
+  int b1=b/8;
+  color = (r1<<0) | (g1<<5) | (b1<<10);
   return color;
 }
 
-int currentLocation=0, playerMoving=0;
-uint16 player1Color=0XFF00;
-uint16 player2Color=0XAAFF;
-uint16 player1ColorSelect=0XFF10;
-uint16 player2ColorSelect=0XABFF;
+
 uint16 BLACK=0X0000;
 uint16 WHITE=0XFFFF;
+uint16 RED=0X001F;
+uint16 GREEN=0X03E0;
+uint16 BLUE=0X3E00;
+uint16 YELLOW=0X03FF;
+uint16 CYAN=0X7FE0;
+uint16 MAGENTA=0X7C1F;
+uint16 GRAY=0X7BEF;
+uint16 BROWN=0X0C63;
+uint16 ORANGE=0X01FF;
+uint16 PINK=0X7C1F;
+uint16 PURPLE=0X780F;
+uint16 TIE=0X7BEF;
+uint16 player1Color=0X001F;//red
+uint16 player2Color=0X44C0;//blue
+uint16 player1ColorSelect=0X3dff;//light red
+uint16 player2ColorSelect=0X7FE0;
 
 void drawRect(struct Rect r, uint16 color){
   for(int i = 0; i < r.h; i++){
@@ -41,12 +56,15 @@ void drawCircle(struct Circle r, uint16 color){
 }
 
 void initHash(int y, int x, int height, int width, int thickness){
+  
   int temp=(height-thickness*2)/3;
   int temp2=(width-thickness*2)/3;
   x1.h = x2.h = thickness;
   x1.w = x2.w = width;
   y1.h = y2.h = height;
   y1.w = y2.w = thickness;
+  pixel.h=pixel.w=1;
+  pixel.x=pixel.y=0;
   
   y1.y = y2.y = y;
   y1.x = x+temp2;
@@ -99,43 +117,26 @@ void drawCircleInt(int location, uint16 color){
   if(location==9){drawCircle(p9, color);}
 }
 
-void initDrawBoard(int y, int x, int width, int height, int thickness, uint16 color){
+void initDrawBoard(){
   winner.x=0;
   winner.y=0;
   winner.h=SCREEN_HEIGHT;
   winner.w=SCREEN_WIDTH;
-  drawRect(winner, color);
+  drawRect(winner, BLACK);
   drawHash(WHITE);
   drawCircles(BLACK);
 }
 
-int checkWinner(){
-  if (s1==s2==s3&&s1!=0){
-    return s1;
-  }
-  if(s4==s5==s6&&s4!=0){
-    return s4;
-  }
-  if(s7==s8==s9&&s7!=0){
-    return s7;
-  }
-  if(s1==s4==s7&&s1!=0){
-    return s7;
-  }
-  if(s2==s5==s8&&s2!=0){
-    return s2;
-  }
-  if(s3==s6==s9&&s3!=0){
-    return s3;
-  }
-  if(s1==s5==s9&&s1!=0){
-    return s1;
-  }
-  if(s3==s5==s7&&s3!=0){
-    return s3;
-  }
+int checkWinner(){//returns winning player or 0 if no winner
+  if (((s1==s2)&&(s2==s3))&&(s1!=0)){return s1;}
+  if (((s4==s5)&&(s5==s6))&&(s4!=0)){return s4;}
+  if (((s7==s8)&&(s8==s9))&&(s7!=0)){return s7;}
+  if (((s1==s4)&&(s4==s7))&&(s1!=0)){return s1;}
+  if (((s2==s5)&&(s5==s8))&&(s2!=0)){return s2;}
+  if (((s3==s6)&&(s6==s9))&&(s3!=0)){return s3;}
+  if (((s1==s5)&&(s5==s9))&&(s1!=0)){return s1;}
+  if (((s3==s5)&&(s5==s7))&&(s3!=0)){return s3;}
   return 0;
-
 }
 
 int checkSpace(int location){
@@ -172,11 +173,13 @@ void playerTempMove(int location, int player){
   }
 }
 
-void playerMove(int player, int location){//does not check if spot is available(needs to be done in main function)
+void playerMove(int location, int player){//does not check if spot is available(needs to be done in main function)
   if(player==1){
     drawCircleInt(location, player1Color);
   }else if(player==2){
     drawCircleInt(location, player2Color);
+  }else if(player==0){
+    drawCircleInt(location, BLACK);
   }
   updateBGBoard(location,player);
 }
@@ -194,56 +197,66 @@ int findEmptySpace(){
   return 0;
 }
 
-//returns location of move command. IE, if 1 moves left, it returns 2
-//0=up, 1=down, 2=left, 3=right
-int move(int direction, int location){
+void drawBoard(){
+  drawRect(winner, BLACK);
+  drawHash(WHITE);
+  drawCircles(BLACK);
+  playerMove(1,s1);
+  playerMove(2,s2);
+  playerMove(3,s3);
+  playerMove(4,s4);
+  playerMove(5,s5);
+  playerMove(6,s6);
+  playerMove(7,s7);
+  playerMove(8,s8);
+  playerMove(9,s9);
+}
+
+int tempMove(int direction, int location){
   if(direction==0){
     //go up
     if(location<=3){return location;}
-    if(location>3){
-      if(checkSpace(location-3)==1){return location-3;}
-      return location;
-      }
+    return location-3;
   }
   if(direction==1){
     //go down
     if(location>=7){return location;}
-    if(location<7){
-      if(checkSpace(location+3)==1){return location+3;}
-      return location;
-      }
+    return location+3;
   }
   if(direction==2){
     //go left
     if(location==1||location==4||location==7){return location;}
-    else{
-      if(checkSpace(location-1)==1){return location-1;}
-      return location;
-      }
+    return location-1;
   }
   if(direction==3){
     //go right
     if(location==3||location==6||location==9){return location;}
-    else{
-      if(checkSpace(location+1)==1){return location+1;}
-      return location;
-      }
-
+    return location+1;
   }
   return location;
 }
 
 int checkUserInput(){
-  if(!(REG_DISPLAY_INPUT & UP))
+  if(!(REG_DISPLAY_INPUT & UP)){
+    while(!(REG_DISPLAY_INPUT & UP)){}//delay
     return 0;
-  if(!(REG_DISPLAY_INPUT & DOWN))
-      return 1;
-  if(!(REG_DISPLAY_INPUT & LEFT))
-      return 2;
-  if(!(REG_DISPLAY_INPUT & RIGHT))
-      return 3;
-  if(!(REG_DISPLAY_INPUT & SELECT))
-      return 4;
+  }
+  if(!(REG_DISPLAY_INPUT & DOWN)){
+    while(!(REG_DISPLAY_INPUT & DOWN)){}
+    return 1;
+  }
+  if(!(REG_DISPLAY_INPUT & LEFT)){
+    while(!(REG_DISPLAY_INPUT & LEFT)){}
+    return 2;
+  }
+  if(!(REG_DISPLAY_INPUT & RIGHT)){
+    while(!(REG_DISPLAY_INPUT & RIGHT)){}
+    return 3;
+  }
+  if(!(REG_DISPLAY_INPUT & SELECT)){
+    while(!(REG_DISPLAY_INPUT & SELECT)){}
+    return 4;
+  }
   return -1;
 }
 
@@ -254,53 +267,67 @@ int checkTie(){
   return 0;
 }
 
+void restartGame(){
+  s1=0;
+  s2=0;
+  s3=0;
+  s4=0;
+  s5=0;
+  s6=0;
+  s7=0;
+  s8=0;
+  s9=0;
+  initDrawBoard();
+  playerMoving=0;
+  drawBoard();
+ }
 
 int main(){
   REG_DISPLAY = VIDEOMODE | BGMODE;
-  //initialize board.
-  //draw board
-  //draw hash
-  //draw circles
-  //if player not currently moving
-      //check for empty spot
-      //move player to this spot
-  //check for user input
-  //if move requested, draw circle on it
-  //if select was pressed, check if legal move
-  //if legal move, draw circle on it, switch to other player, check for winner/tie
-  //if neither, repeat
+  //initiate board
   initHash(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
   initCircles(0,(SCREEN_WIDTH-SCREEN_HEIGHT)/2,SCREEN_HEIGHT,SCREEN_HEIGHT,3);
-
-  drawHash(WHITE);
-  drawCircles(BLACK);
+  initDrawBoard();
 
   while(1){
     sync();
     if(playerMoving==0){
       playerMoving=1;
     }
-      if(currentLocation==0){//if no current location, find empty space and move to it
-        currentLocation=findEmptySpace();
-      }
-      int temp= checkUserInput();//check for user input
-      
-      if(-1<temp&&temp<4){
-        drawCircleInt(currentLocation, BLACK);
-        currentLocation=move(temp,currentLocation);
-        playerTempMove(currentLocation, player1Color);
-      }//if user input is a move command, move player
-      
-      if(temp==4){//if player presses select, do appropiate action
-        if(checkSpace(currentLocation)==1){//if space is not empty, do nothing
-          playerMove(currentLocation, playerMoving);//moves player on the BG board
-          currentLocation=0;
-          if (playerMoving==1){playerMoving=2;}//switches player
-          else{playerMoving=1;}
-        }
+    if(currentLocation==0&&gameWon==0){//if no current location, find empty space and move to it
+      currentLocation=findEmptySpace();
+      playerTempMove(currentLocation, playerMoving);
+    }
+    int temp= checkUserInput();//check for user input
+    
+    if(-1<temp&&temp<4&&gameWon==0){//if user input is valid and game is not won
+      drawBoard();
+      currentLocation=tempMove(temp,currentLocation);
+      playerTempMove(currentLocation, playerMoving);//draws temp move
+    }//if user input is a move command, move player
+    
+    if(temp==4){//if player presses select, do appropiate action
+    if(gameWon!=0){
+      restartGame();
+      gameWon=0;
+    }
+      if(checkSpace(currentLocation)==1){//if space is not empty, do nothing
+        playerMove(currentLocation, playerMoving);//moves player on the BG board
+        currentLocation=0;
+
+        if(checkWinner()==1){
+          drawRect(winner, player1Color);
+          gameWon=1;
+        }else if(checkWinner()==2){
+          drawRect(winner, player2Color);
+          gameWon=2;
+        }else if(checkTie()==1){
+            drawRect(winner, WHITE);
+            gameWon=3;
+          }
+        if (playerMoving==1){playerMoving=2;}//switches player
+        else{playerMoving=1;}
       }
     }
-
   }
-    //}
-
+}
