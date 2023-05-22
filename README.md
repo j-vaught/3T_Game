@@ -30,10 +30,10 @@ To run the TicTacToe game, follow these steps:
 
 ## Screenshots
 ![Gameplay Screenshot 1](https://github.com/j-vaught/3T_Game/blob/master/3T_GamePlay2.png)
-*Caption for the first gameplay screenshot.*
+*First gameplay screenshot.*
 
 ![Gameplay Screenshot 2](https://github.com/j-vaught/3T_Game/blob/master/3T_GamePlay1.png)
-*Caption for the second gameplay screenshot.*
+*Second gameplay screenshot.*
 
 ## Contributions
 Contributions to the project are welcome. If you find any issues or have suggestions for improvements, please feel free to submit a pull request.
@@ -45,4 +45,4 @@ This project is licensed under the [MIT License](LICENSE).
 I would like to express my gratitude to Professor William Hoskins for providing guidance and support throughout the development of this game. I would also like to thank my classmates for their valuable feedback and encouragement.
 
 ## Contact
-If you have any questions or inquiries regarding this project, please contact me at [jvaught@sc.edu].
+If you have any questions or inquiries regarding this project, please contact me at jvaught@sc.edu.
