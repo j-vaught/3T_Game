@@ -29,10 +29,10 @@ To run the TicTacToe game, follow these steps:
 - If all cells are filled and no player has won, the game ends in a draw.
 
 ## Screenshots
-![Gameplay Screenshot 1](screenshot1.jpg)
+![Gameplay Screenshot 1](https://github.com/j-vaught/3T_Game/blob/master/3T_GamePlay2.png)
 *Caption for the first gameplay screenshot.*
 
-![Gameplay Screenshot 2](screenshot2.jpg)
+![Gameplay Screenshot 2](https://github.com/j-vaught/3T_Game/blob/master/3T_GamePlay1.png)
 *Caption for the second gameplay screenshot.*
 
 ## Contributions
